@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Сергей Сорокин — промышленный фотограф</title>
+<meta name="description" content="Промышленная и индустриальная фотосъёмка в Санкт-Петербурге и по всей России. Заводы, цеха, оборудование, производственные процессы.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <div class="brand">
+      <div class="brand-mark">СС</div>
+      <div>
+        <div class="brand-name">Сергей Сорокин</div>
+        <div class="brand-role">Промышленный фотограф</div>
+      </div>
+    </div>
+    <nav class="nav-links">
+      <a href="#about">Обо мне</a>
+      <a href="#cases">Кейсы</a>
+      <a href="#gallery">Портфолио</a>
+      <a href="#services">Стоимость</a>
+      <a href="#contact">Контакты</a>
+    </nav>
+    <a class="nav-phone" href="tel:+79111192091">+7 (911) 119-20-91</a>
+    <button class="nav-toggle" id="nav-toggle" aria-label="Меню">
+      <svg width="18" height="14" viewBox="0 0 18 14" fill="none"><path d="M0 1H18M0 7H18M0 13H18" stroke="currentColor" stroke-width="1.5"/></svg>
+    </button>
+  </div>
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="#about">Обо мне</a>
+    <a href="#cases">Кейсы</a>
+    <a href="#gallery">Портфолио</a>
+    <a href="#services">Стоимость</a>
+    <a href="#contact">Контакты</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-media"></div>
+  <div class="wrap hero-content">
+    <span class="eyebrow">Промышленная фотосъёмка · Санкт-Петербург</span>
+    <h1>Показываю <span>масштаб</span> вашего производства</h1>
+    <p class="hero-sub">Снимаю заводы, цеха и оборудование в работе — так, чтобы фотография говорила о бизнесе языком, понятным и инженеру, и заказчику отчёта.</p>
+    <div class="hero-actions">
+      <a href="#cases" class="btn btn-signal">Смотреть кейсы</a>
+      <a href="#contact" class="btn btn-ghost">Обсудить проект</a>
+    </div>
+  </div>
+  <span class="hero-placeholder-note">кадр объекта — добавится позже</span>
+</section>
+
+<div class="spec-strip">
+  <div class="wrap">
+    <div class="spec-item">
+      <div class="spec-key">Опыт</div>
+      <div class="spec-val">10+ лет</div>
+    </div>
+    <div class="spec-item">
+      <div class="spec-key">География</div>
+      <div class="spec-val">Вся Россия</div>
+    </div>
+    <div class="spec-item">
+      <div class="spec-key">Допуск</div>
+      <div class="spec-val">Режимные объекты</div>
+    </div>
+    <div class="spec-item">
+      <div class="spec-key">Формат</div>
+      <div class="spec-val">Цех / дрон / детали</div>
+    </div>
+  </div>
+</div>
+
+<section class="section" id="about">
+  <div class="wrap about-grid">
+    <div class="about-text reveal">
+      <span class="eyebrow">Подход</span>
+      <h2 style="margin: 10px 0 22px;">Не глянец, а инженерная точность</h2>
+      <p>Специализируюсь на съёмке крупных промышленных объектов, архитектуры и производственных процессов. Задача каждой съёмки — показать масштаб и устройство бизнеса через детали, свет и индустриальную эстетику, а не превратить цех в рекламный набор.</p>
+      <p>Знаю специфику съёмки на закрытых объектах — от согласований до техники безопасности. Работаю с профессиональным светом в сложных условиях: низкий свет цеха, контровой свет из окон, ночные и подземные помещения.</p>
+    </div>
+    <div class="about-media reveal" id="about-media"></div>
+  </div>
+</section>
+
+<section class="section" id="cases" style="background: var(--ink-2);">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Портфолио</span>
+        <h2 style="margin-top: 10px;">Кейсы</h2>
+      </div>
+      <p style="max-width: 40ch;">Несколько последних объектов — от исторической электроподстанции до автоматизированной упаковочной линии.</p>
+    </div>
+    <div id="cases-mount"></div>
+  </div>
+</section>
+
+<section class="section" id="gallery">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Архив</span>
+        <h2 style="margin-top: 10px;">Общее портфолио</h2>
+      </div>
+      <p style="max-width: 40ch;">Склады, логистика, оборудование — снимки, которые не попали в отдельные кейсы, но показывают диапазон работы.</p>
+    </div>
+    <div class="gallery-grid" id="gallery-mount"></div>
+  </div>
+</section>
+
+<section class="section" id="services" style="background: var(--ink-2);">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Условия</span>
+        <h2 style="margin-top: 10px;">Стоимость и факторы</h2>
+      </div>
+    </div>
+    <div class="factors">
+      <div class="factor reveal">
+        <span class="factor-num">01</span>
+        <h3>Сложность объекта</h3>
+        <p>Удалённость, режим допуска, необходимость согласований — всё это закладывается в расчёт заранее.</p>
+      </div>
+      <div class="factor reveal">
+        <span class="factor-num">02</span>
+        <h3>Продолжительность</h3>
+        <p>От пары часов на локальную съёмку до нескольких смен на крупном объекте с полным циклом.</p>
+      </div>
+      <div class="factor reveal">
+        <span class="factor-num">03</span>
+        <h3>Оборудование и ретушь</h3>
+        <p>Дополнительный свет, дрон, глубина цветокоррекции — стоимость зависит от объёма пост-обработки.</p>
+      </div>
+    </div>
+    <div class="pricing-note">
+      <p>Каждый объект уникален, поэтому итоговая стоимость рассчитывается индивидуально — после короткого разговора о задаче.</p>
+      <a href="#contact" class="btn btn-signal">Запросить расчёт</a>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="contact">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Связь</span>
+        <h2 style="margin-top: 10px;">Обсудить съёмку</h2>
+      </div>
+    </div>
+    <div class="contact-grid">
+      <div class="contact-card">
+        <span class="contact-card-title">Заявка на расчёт</span>
+        <form id="lead-form">
+          <div class="field">
+            <label for="name">Имя</label>
+            <input type="text" id="name" name="name" placeholder="Как к вам обращаться" required>
+          </div>
+          <div class="field">
+            <label for="contact">Телефон или Telegram</label>
+            <input type="text" id="contact" name="contact" placeholder="+7 ... или @username" required>
+          </div>
+          <div class="field">
+            <label for="objectType">Тип объекта</label>
+            <select id="objectType" name="objectType">
+              <option value="">Не выбрано</option>
+              <option value="Завод / цех">Завод / цех</option>
+              <option value="Склад / логистика">Склад / логистика</option>
+              <option value="Стройка">Стройка</option>
+              <option value="Другое">Другое</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="message">Комментарий</label>
+            <textarea id="message" name="message" placeholder="Пара слов о задаче"></textarea>
+          </div>
+          <button type="submit" class="btn btn-signal" style="width: 100%; justify-content: center;">Отправить заявку</button>
+          <div class="form-status" id="form-status"></div>
+        </form>
+      </div>
+      <div class="contact-direct">
+        <div>
+          <div class="contact-line">
+            <span class="k">Телефон</span>
+            <a href="tel:+79111192091">+7 (911) 119-20-91</a>
+          </div>
+          <div class="contact-line">
+            <span class="k">Telegram</span>
+            <a href="https://t.me/gabdulatukai" target="_blank" rel="noopener">@gabdulatukai</a>
+          </div>
+          <div class="contact-line">
+            <span class="k">ВКонтакте</span>
+            <a href="https://vk.ru/gabdulatukai" target="_blank" rel="noopener">vk.ru/gabdulatukai</a>
+          </div>
+          <div class="contact-line">
+            <span class="k">География</span>
+            <span>Работаю по всей России</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <span>© 2026 Сергей Сорокин. Промышленная фотосъёмка.</span>
+    <span>Санкт-Петербург</span>
+  </div>
+</footer>
+
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" id="lightbox-close" aria-label="Закрыть">✕</button>
+  <div id="lightbox-inner"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="data.js"></script>
+<script src="config.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

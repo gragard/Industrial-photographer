@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Загрузка фото — админка</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .admin-wrap { max-width: 640px; margin: 0 auto; padding: 48px var(--edge) 96px; }
+  .admin-lock { max-width: 360px; margin: 96px auto; text-align: center; }
+  .admin-lock input { text-align: center; margin-bottom: 14px; }
+  .photo-row {
+    display: flex; align-items: center; gap: 14px;
+    padding: 12px 0; border-top: 0.5px solid var(--plate-line);
+  }
+  .photo-row img { width: 56px; height: 56px; object-fit: cover; border-radius: 2px; flex-shrink: 0; }
+  .photo-row .meta { flex: 1; min-width: 0; }
+  .photo-row .meta .t { font-size: 14px; color: var(--paper); }
+  .photo-row .meta .s { font-family: var(--font-mono); font-size: 11px; color: var(--paper-faint); }
+  .photo-row button {
+    background: none; border: 0.5px solid var(--plate-line-strong); color: var(--paper-dim);
+    border-radius: 2px; padding: 6px 10px; font-family: var(--font-mono); font-size: 11px; cursor: pointer;
+  }
+  .photo-row button:hover { border-color: #d86a5d; color: #d86a5d; }
+  .hint { font-size: 13px; color: var(--paper-faint); margin-top: 6px; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <div class="brand">
+      <div class="brand-mark">СС</div>
+      <div>
+        <div class="brand-name">Админка</div>
+        <div class="brand-role">Загрузка фото</div>
+      </div>
+    </div>
+    <a class="nav-phone" href="index.html">← На сайт</a>
+  </div>
+</header>
+
+<div id="lock-screen" class="admin-lock">
+  <p class="eyebrow" style="margin-bottom: 14px;">Вход</p>
+  <div class="field">
+    <input type="email" id="email" placeholder="Email">
+  </div>
+  <div class="field">
+    <input type="password" id="pwd" placeholder="Пароль">
+  </div>
+  <button class="btn btn-signal" id="pwd-submit" style="width: 100%; justify-content: center;">Войти</button>
+  <p class="hint" id="pwd-error" style="color: #d86a5d; display: none;"></p>
+</div>
+
+<div id="admin-screen" class="admin-wrap" style="display: none;">
+
+  <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+    <button class="btn btn-ghost" id="logout-btn" style="padding: 8px 14px;">Выйти</button>
+  </div>
+
+
+  <div class="reveal in" style="margin-bottom: 32px;">
+    <span class="eyebrow">Новая загрузка</span>
+    <h2 style="margin: 10px 0 20px;">Добавить фото</h2>
+    <div class="contact-card">
+      <div class="field">
+        <label for="file">Файл фото</label>
+        <input type="file" id="file" accept="image/*">
+      </div>
+      <div class="field">
+        <label for="case-select">Куда добавить</label>
+        <select id="case-select"></select>
+      </div>
+      <div class="field">
+        <label for="caption">Подпись (необязательно)</label>
+        <input type="text" id="caption" placeholder="Например: цех, общий план">
+      </div>
+      <button class="btn btn-signal" id="upload-btn" style="width: 100%; justify-content: center;">Загрузить</button>
+      <div class="form-status" id="upload-status"></div>
+    </div>
+  </div>
+
+  <div class="reveal in">
+    <span class="eyebrow">Уже загружено</span>
+    <h2 style="margin: 10px 0 6px;">Фото на сайте</h2>
+    <p class="hint" style="margin-bottom: 10px;">Удаление убирает фото с сайта сразу.</p>
+    <div id="photo-list"></div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="data.js"></script>
+<script src="config.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>
