@@ -1,27 +1,9 @@
-/*
-  Настройки сайта.
 
-  1) SUPABASE — нужен, чтобы дядя мог сам загружать фото через /admin.html
-     Как получить: зарегистрироваться на supabase.com (бесплатно),
-     создать проект, взять URL и anon key в Settings → API.
-     Подробная инструкция — в README.md.
-
-  2) TELEGRAM — нужен, чтобы заявки с формы сайта падали в Telegram.
-     Как получить BOT_TOKEN: написать @BotFather в Telegram, команда /newbot.
-     Как получить CHAT_ID: написать боту любое сообщение, затем открыть
-     https://api.telegram.org/bot<TOKEN>/getUpdates и найти "chat":{"id":...}
-
-     ВАЖНО: токен бота будет виден в коде сайта любому, кто откроет
-     исходники страницы. Это нормально для простого MVP (максимум,
-     что может сделать посторонний — прислать боту лишние сообщения),
-     но если это станет проблемой — на будущее лучше вынести отправку
-     на маленький сервер. Подробнее — в README.md.
-*/
 
 window.SITE_CONFIG = {
   supabase: {
-    url: "",
-    anonKey: ""
+    url: "https://vynhivvyhzwipkiombxa.supabase.co",
+    anonKey: "sb_publishable_un_jxZbuWpXW-tLAUA6Lkg_RfTyb7a_"
   },
   telegram: {
     botToken: "",
