@@ -147,11 +147,11 @@
       }
 
       var text =
-        "Новая заявка с сайта%0A" +
-        "Имя: " + encodeURIComponent(name) + "%0A" +
-        "Контакт: " + encodeURIComponent(contact) + "%0A" +
-        "Тип объекта: " + encodeURIComponent(objectType || "не указан") + "%0A" +
-        "Комментарий: " + encodeURIComponent(message || "—");
+        "Новая заявка с сайта\n" +
+        "Имя: " + name + "\n" +
+        "Контакт: " + contact + "\n" +
+        "Тип объекта: " + (objectType || "не указан") + "\n" +
+        "Комментарий: " + (message || "—");
 
       var botToken = CONFIG.telegram && CONFIG.telegram.botToken;
       var chatId = CONFIG.telegram && CONFIG.telegram.chatId;
@@ -165,7 +165,11 @@
       status.textContent = "Отправляю...";
       status.className = "form-status";
 
-      fetch("https://api.telegram.org/bot" + botToken + "/sendMessage?chat_id=" + chatId + "&text=" + text)
+      fetch("https://api.telegram.org/bot" + botToken + "/sendMessage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: chatId, text: text })
+      })
         .then(function (r) { return r.json(); })
         .then(function (r) {
           if (r.ok) {
