@@ -154,9 +154,10 @@
         "Комментарий: " + (message || "—");
 
       var botToken = CONFIG.telegram && CONFIG.telegram.botToken;
-      var chatId = CONFIG.telegram && CONFIG.telegram.chatId;
+      var chatIds = (CONFIG.telegram && CONFIG.telegram.chatIds) || [];
+      chatIds = chatIds.filter(function (id) { return id; });
 
-      if (!botToken || !chatId) {
+      if (!botToken || !chatIds.length) {
         status.textContent = "Форма пока не подключена. Свяжитесь напрямую по контактам ниже.";
         status.className = "form-status err";
         return;
@@ -168,15 +169,18 @@
       var controller = new AbortController();
       var timeoutId = setTimeout(function () { controller.abort(); }, 8000);
 
-      fetch("https://api.telegram.org/bot" + botToken + "/sendMessage", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chat_id: chatId, text: text }),
-        signal: controller.signal
-      })
-        .then(function (r) { clearTimeout(timeoutId); return r.json(); })
-        .then(function (r) {
-          if (r.ok) {
+      Promise.all(chatIds.map(function (chatId) {
+        return fetch("https://api.telegram.org/bot" + botToken + "/sendMessage", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chat_id: chatId, text: text }),
+          signal: controller.signal
+        }).then(function (r) { return r.json(); });
+      }))
+        .then(function (results) {
+          clearTimeout(timeoutId);
+          var allOk = results.every(function (r) { return r.ok; });
+          if (allOk) {
             status.textContent = "Заявка отправлена. Отвечу в ближайшее время.";
             status.className = "form-status ok";
             form.reset();
