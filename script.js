@@ -165,12 +165,16 @@
       status.textContent = "Отправляю...";
       status.className = "form-status";
 
+      var controller = new AbortController();
+      var timeoutId = setTimeout(function () { controller.abort(); }, 8000);
+
       fetch("https://api.telegram.org/bot" + botToken + "/sendMessage", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chat_id: chatId, text: text })
+        body: JSON.stringify({ chat_id: chatId, text: text }),
+        signal: controller.signal
       })
-        .then(function (r) { return r.json(); })
+        .then(function (r) { clearTimeout(timeoutId); return r.json(); })
         .then(function (r) {
           if (r.ok) {
             status.textContent = "Заявка отправлена. Отвечу в ближайшее время.";
@@ -181,7 +185,8 @@
           }
         })
         .catch(function () {
-          status.textContent = "Не получилось отправить. Напишите напрямую в Telegram по контактам ниже.";
+          clearTimeout(timeoutId);
+          status.textContent = "Не получилось отправить (проблема со связью). Напишите напрямую в Telegram по контактам ниже.";
           status.className = "form-status err";
         });
     });
