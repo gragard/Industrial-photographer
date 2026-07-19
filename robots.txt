@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://gragard.github.io/Industrial-photographer/sitemap.xml
