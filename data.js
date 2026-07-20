@@ -56,7 +56,8 @@ window.SITE_DATA = {
         { src: "images/tok-4.jpg", alt: "Сварка каркаса крупным планом" }
       ]
     },
-
+],
+  
   gallery: [
     { src: "images/gallery-1.jpg", alt: "Портовый кран крупным планом" },
     { src: "images/gallery-2.jpg", alt: "Складские стеллажи, общий план" },
