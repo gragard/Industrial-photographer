@@ -187,7 +187,13 @@
         });
     });
   }
-
+function renderAbout() {
+    var mount = document.getElementById("about-media");
+    if (!mount || !DATA.about) return;
+    var el = mediaEl(DATA.about);
+    if (el.tagName === "IMG") { el.style.width = "100%"; el.style.height = "100%"; el.style.objectFit = "cover"; }
+    mount.appendChild(el);
+  }
   /* ---------- Подтягиваем фото, загруженные через /admin.html ---------- */
   function loadRemotePhotos() {
     var sb = CONFIG.supabase;
