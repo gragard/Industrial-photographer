@@ -146,18 +146,8 @@
         return;
       }
 
-      var text =
-        "Новая заявка с сайта\n" +
-        "Имя: " + name + "\n" +
-        "Контакт: " + contact + "\n" +
-        "Тип объекта: " + (objectType || "не указан") + "\n" +
-        "Комментарий: " + (message || "—");
-
-      var botToken = CONFIG.telegram && CONFIG.telegram.botToken;
-      var chatIds = (CONFIG.telegram && CONFIG.telegram.chatIds) || [];
-      chatIds = chatIds.filter(function (id) { return id; });
-
-      if (!botToken || !chatIds.length) {
+      var sb = CONFIG.supabase;
+      if (!sb || !sb.url || !sb.anonKey) {
         status.textContent = "Форма пока не подключена. Свяжитесь напрямую по контактам ниже.";
         status.className = "form-status err";
         return;
@@ -169,23 +159,25 @@
       var controller = new AbortController();
       var timeoutId = setTimeout(function () { controller.abort(); }, 8000);
 
-      Promise.all(chatIds.map(function (chatId) {
-        return fetch("https://api.telegram.org/bot" + botToken + "/sendMessage", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ chat_id: chatId, text: text }),
-          signal: controller.signal
-        }).then(function (r) { return r.json(); });
-      }))
-        .then(function (results) {
+      fetch(sb.url + "/functions/v1/send-lead", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + sb.anonKey,
+          "apikey": sb.anonKey
+        },
+        body: JSON.stringify({ name: name, contact: contact, objectType: objectType, message: message }),
+        signal: controller.signal
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
           clearTimeout(timeoutId);
-          var allOk = results.every(function (r) { return r.ok; });
-          if (allOk) {
+          if (res && res.ok) {
             status.textContent = "Заявка отправлена. Отвечу в ближайшее время.";
             status.className = "form-status ok";
             form.reset();
           } else {
-            throw new Error("telegram error");
+            throw new Error("send-lead error");
           }
         })
         .catch(function () {
@@ -194,14 +186,6 @@
           status.className = "form-status err";
         });
     });
-  }
-
-  function renderAbout() {
-    var mount = document.getElementById("about-media");
-    if (!mount || !DATA.about) return;
-    var el = mediaEl(DATA.about);
-    if (el.tagName === "IMG") { el.style.width = "100%"; el.style.height = "100%"; el.style.objectFit = "cover"; }
-    mount.appendChild(el);
   }
 
   /* ---------- Подтягиваем фото, загруженные через /admin.html ---------- */
