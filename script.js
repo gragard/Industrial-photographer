@@ -27,6 +27,7 @@
   function renderCases() {
     var mount = document.getElementById("cases-mount");
     if (!mount) return;
+    mount.innerHTML = ""; // на случай повторного рендера после подгрузки Supabase
 
     DATA.cases.forEach(function (c, i) {
       var block = document.createElement("div");
@@ -57,6 +58,8 @@
       block.appendChild(info);
       mount.appendChild(block);
     });
+
+    initReveal();
   }
 
   /* ---------- Лайтбокс (общий для кейсов и галереи) ---------- */
@@ -85,6 +88,7 @@
   function renderGallery() {
     var mount = document.getElementById("gallery-mount");
     if (!mount) return;
+    mount.innerHTML = ""; // на случай повторного рендера после подгрузки Supabase
 
     DATA.gallery.forEach(function (item) {
       var cell = document.createElement("div");
@@ -93,6 +97,8 @@
       cell.addEventListener("click", function () { openLightbox(item); });
       mount.appendChild(cell);
     });
+
+    initReveal();
   }
 
   /* ---------- Мобильное меню ---------- */
@@ -110,7 +116,7 @@
 
   /* ---------- Scroll reveal ---------- */
   function initReveal() {
-    var els = document.querySelectorAll(".reveal");
+    var els = document.querySelectorAll(".reveal:not(.in)");
     if (!("IntersectionObserver" in window)) {
       els.forEach(function (el) { el.classList.add("in"); });
       return;
@@ -131,6 +137,8 @@
     var form = document.getElementById("lead-form");
     if (!form) return;
     var status = document.getElementById("form-status");
+    if (form.dataset.bound === "1") return; // защита от повторной привязки
+    form.dataset.bound = "1";
 
     form.addEventListener("submit", function (e) {
       e.preventDefault();
@@ -169,36 +177,46 @@
         body: JSON.stringify({ name: name, contact: contact, objectType: objectType, message: message }),
         signal: controller.signal
       })
-        .then(function (r) { return r.json(); })
-        .then(function (res) {
+        .then(function (r) {
+          return r.json().catch(function () { return null; }).then(function (data) {
+            return { ok: r.ok, data: data };
+          });
+        })
+        .then(function (result) {
           clearTimeout(timeoutId);
-          if (res && res.ok) {
+          if (result.ok && result.data && result.data.ok) {
             status.textContent = "Заявка отправлена. Отвечу в ближайшее время.";
             status.className = "form-status ok";
             form.reset();
           } else {
+            // Логируем причину в консоль, чтобы её было видно в devtools при диагностике
+            console.error("send-lead: сервер вернул ошибку", result);
             throw new Error("send-lead error");
           }
         })
-        .catch(function () {
+        .catch(function (err) {
           clearTimeout(timeoutId);
+          console.error("send-lead: запрос не прошёл", err);
           status.textContent = "Не получилось отправить (проблема со связью). Напишите напрямую в Telegram по контактам ниже.";
           status.className = "form-status err";
         });
     });
   }
-function renderAbout() {
+
+  function renderAbout() {
     var mount = document.getElementById("about-media");
     if (!mount || !DATA.about) return;
+    mount.innerHTML = "";
     var el = mediaEl(DATA.about);
     if (el.tagName === "IMG") { el.style.width = "100%"; el.style.height = "100%"; el.style.objectFit = "cover"; }
     mount.appendChild(el);
   }
+
   /* ---------- Подтягиваем фото, загруженные через /admin.html ---------- */
   function loadRemotePhotos() {
     var sb = CONFIG.supabase;
     if (!sb || !sb.url || !sb.anonKey || typeof window.supabase === "undefined") {
-      return Promise.resolve();
+      return Promise.resolve(false);
     }
     var client = window.supabase.createClient(sb.url, sb.anonKey);
     return client
@@ -206,7 +224,7 @@ function renderAbout() {
       .select("*")
       .order("sort_order", { ascending: true })
       .then(function (res) {
-        if (!res.data || !res.data.length) return;
+        if (!res.data || !res.data.length) return false;
         var byCase = {};
         var gallery = [];
         res.data.forEach(function (row) {
@@ -222,9 +240,11 @@ function renderAbout() {
           if (byCase[c.id] && byCase[c.id].length) c.photos = byCase[c.id];
         });
         if (gallery.length) DATA.gallery = gallery;
+        return true;
       })
       .catch(function (err) {
         console.warn("Не удалось загрузить фото из Supabase:", err);
+        return false;
       });
   }
 
@@ -240,15 +260,23 @@ function renderAbout() {
   }
 
   document.addEventListener("DOMContentLoaded", function () {
-    loadRemotePhotos().then(function () {
+    // 1) Рисуем сайт СРАЗУ на запасных данных из data.js — без ожидания сети.
+    renderHero();
+    renderAbout();
+    renderCases();
+    renderGallery();
+    initLightbox();
+    initMobileMenu();
+    initForm();
+
+    // 2) Параллельно, в фоне, подтягиваем реальные фото из Supabase.
+    //    Если что-то пришло — перерисовываем только затронутые блоки.
+    loadRemotePhotos().then(function (updated) {
+      if (!updated) return;
       renderHero();
       renderAbout();
       renderCases();
       renderGallery();
-      initLightbox();
-      initMobileMenu();
-      initReveal();
-      initForm();
     });
   });
 })();
