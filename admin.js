@@ -6,7 +6,8 @@
   var client = null;
 
   var BUCKET = "photos";
-  var TABLE = "photos";
+  var PHOTO_TABLE = "photos";
+  var LEAD_TABLE = "leads";
 
   function sbReady() {
     return CONFIG.supabase && CONFIG.supabase.url && CONFIG.supabase.anonKey && typeof window.supabase !== "undefined";
@@ -76,7 +77,114 @@
     document.getElementById("logout-btn").addEventListener("click", function () {
       client.auth.signOut().then(function () { location.reload(); });
     });
+
+    initTabs();
     loadPhotoList();
+    loadLeadList();
+  }
+
+  /* ---------- Вкладки ---------- */
+  function initTabs() {
+    var tabLeads = document.getElementById("tab-leads");
+    var tabPhotos = document.getElementById("tab-photos");
+    var panelLeads = document.getElementById("panel-leads");
+    var panelPhotos = document.getElementById("panel-photos");
+
+    tabLeads.addEventListener("click", function () {
+      tabLeads.classList.add("active");
+      tabPhotos.classList.remove("active");
+      panelLeads.style.display = "block";
+      panelPhotos.style.display = "none";
+    });
+    tabPhotos.addEventListener("click", function () {
+      tabPhotos.classList.add("active");
+      tabLeads.classList.remove("active");
+      panelPhotos.style.display = "block";
+      panelLeads.style.display = "none";
+    });
+  }
+
+  /* ---------- Заявки ---------- */
+  function loadLeadList() {
+    var mount = document.getElementById("lead-list");
+    mount.innerHTML = '<p class="hint">Загружаю заявки...</p>';
+
+    client.from(LEAD_TABLE).select("*").order("created_at", { ascending: false })
+      .then(function (res) {
+        if (res.error) throw res.error;
+        mount.innerHTML = "";
+
+        var unseenCount = res.data.filter(function (r) { return !r.seen; }).length;
+        var badge = document.getElementById("lead-badge");
+        if (unseenCount > 0) {
+          badge.textContent = unseenCount;
+          badge.style.display = "inline-flex";
+        } else {
+          badge.style.display = "none";
+        }
+
+        if (!res.data.length) {
+          mount.innerHTML = '<p class="hint">Заявок пока нет.</p>';
+          return;
+        }
+
+        res.data.forEach(function (row) {
+          var el = document.createElement("div");
+          el.className = "lead-row" + (row.seen ? "" : " unseen");
+
+          var date = new Date(row.created_at);
+          var dateStr = date.toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+
+          el.innerHTML =
+            '<div class="body">' +
+              '<div class="top"><span class="name">' + escapeHtml(row.name) + '</span>' +
+              '<span class="date">' + dateStr + '</span></div>' +
+              '<div class="contact">' + escapeHtml(row.contact) + '</div>' +
+              (row.object_type ? '<div class="obj">' + escapeHtml(row.object_type) + '</div>' : "") +
+              (row.message ? '<div class="msg">' + escapeHtml(row.message) + '</div>' : "") +
+              '<div class="actions"></div>' +
+            '</div>';
+
+          var actions = el.querySelector(".actions");
+
+          if (!row.seen) {
+            var seenBtn = document.createElement("button");
+            seenBtn.textContent = "Отметить прочитанным";
+            seenBtn.addEventListener("click", function () { markSeen(row.id); });
+            actions.appendChild(seenBtn);
+          }
+
+          var delBtn = document.createElement("button");
+          delBtn.textContent = "Удалить";
+          delBtn.addEventListener("click", function () { deleteLead(row.id); });
+          actions.appendChild(delBtn);
+
+          mount.appendChild(el);
+        });
+      })
+      .catch(function (err) {
+        mount.innerHTML = '<p class="hint" style="color:#d86a5d;">Не получилось загрузить заявки: ' + (err.message || "") + '</p>';
+      });
+  }
+
+  function markSeen(id) {
+    client.from(LEAD_TABLE).update({ seen: true }).eq("id", id).then(function (res) {
+      if (res.error) { console.error(res.error); return; }
+      loadLeadList();
+    });
+  }
+
+  function deleteLead(id) {
+    client.from(LEAD_TABLE).delete().eq("id", id).then(function (res) {
+      if (res.error) { console.error(res.error); return; }
+      loadLeadList();
+    });
+  }
+
+  function escapeHtml(str) {
+    var div = document.createElement("div");
+    div.textContent = str == null ? "" : String(str);
+    return div.innerHTML;
   }
 
   /* ---------- Загрузка фото ---------- */
@@ -104,7 +212,7 @@
         if (res.error) throw res.error;
         var pub = client.storage.from(BUCKET).getPublicUrl(path);
         var url = pub.data.publicUrl;
-        return client.from(TABLE).insert({
+        return client.from(PHOTO_TABLE).insert({
           case_id: caseId,
           url: url,
           caption: caption,
@@ -131,7 +239,7 @@
     var mount = document.getElementById("photo-list");
     mount.innerHTML = '<p class="hint">Загружаю список...</p>';
 
-    client.from(TABLE).select("*").order("created_at", { ascending: false })
+    client.from(PHOTO_TABLE).select("*").order("created_at", { ascending: false })
       .then(function (res) {
         if (res.error) throw res.error;
         mount.innerHTML = "";
@@ -162,7 +270,7 @@
   }
 
   function deletePhoto(id) {
-    client.from(TABLE).delete().eq("id", id).then(function (res) {
+    client.from(PHOTO_TABLE).delete().eq("id", id).then(function (res) {
       if (res.error) { console.error(res.error); return; }
       loadPhotoList();
     });
