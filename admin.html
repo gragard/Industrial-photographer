@@ -27,6 +27,37 @@
   }
   .photo-row button:hover { border-color: #d86a5d; color: #d86a5d; }
   .hint { font-size: 13px; color: var(--paper-faint); margin-top: 6px; }
+
+  .lead-row {
+    padding: 14px 0; border-top: 0.5px solid var(--plate-line);
+    display: flex; gap: 14px; align-items: flex-start;
+  }
+  .lead-row.unseen { background: rgba(216, 106, 93, 0.06); }
+  .lead-row .body { flex: 1; min-width: 0; }
+  .lead-row .top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+  .lead-row .name { font-size: 14px; color: var(--paper); font-weight: 600; }
+  .lead-row .date { font-family: var(--font-mono); font-size: 11px; color: var(--paper-faint); white-space: nowrap; }
+  .lead-row .contact { font-family: var(--font-mono); font-size: 12px; color: var(--paper-dim); margin-top: 2px; }
+  .lead-row .obj { font-size: 12px; color: var(--paper-faint); margin-top: 4px; }
+  .lead-row .msg { font-size: 13px; color: var(--paper-dim); margin-top: 6px; white-space: pre-wrap; }
+  .lead-row .actions { display: flex; gap: 8px; margin-top: 8px; }
+  .lead-row button {
+    background: none; border: 0.5px solid var(--plate-line-strong); color: var(--paper-dim);
+    border-radius: 2px; padding: 5px 10px; font-family: var(--font-mono); font-size: 11px; cursor: pointer;
+  }
+  .lead-row button:hover { border-color: #d86a5d; color: #d86a5d; }
+  .lead-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px;
+    background: #d86a5d; color: #fff; font-family: var(--font-mono); font-size: 10px;
+    margin-left: 8px; vertical-align: middle;
+  }
+  .tabs { display: flex; gap: 8px; margin-bottom: 24px; }
+  .tab-btn {
+    background: none; border: 0.5px solid var(--plate-line-strong); color: var(--paper-dim);
+    border-radius: 2px; padding: 8px 14px; font-family: var(--font-mono); font-size: 12px; cursor: pointer;
+  }
+  .tab-btn.active { border-color: #d86a5d; color: #d86a5d; }
 </style>
 </head>
 <body>
@@ -37,7 +68,7 @@
       <div class="brand-mark">СС</div>
       <div>
         <div class="brand-name">Админка</div>
-        <div class="brand-role">Загрузка фото</div>
+        <div class="brand-role">Сайт Сергея Сорокина</div>
       </div>
     </div>
     <a class="nav-phone" href="index.html">← На сайт</a>
@@ -62,29 +93,40 @@
     <button class="btn btn-ghost" id="logout-btn" style="padding: 8px 14px;">Выйти</button>
   </div>
 
-
-  <div class="reveal in" style="margin-bottom: 32px;">
-    <span class="eyebrow">Новая загрузка</span>
-    <h2 style="margin: 10px 0 20px;">Добавить фото</h2>
-    <div class="contact-card">
-      <div class="field">
-        <label for="file">Файл фото</label>
-        <input type="file" id="file" accept="image/*">
-      </div>
-      <div class="field">
-        <label for="case-select">Куда добавить</label>
-        <select id="case-select"></select>
-      </div>
-      <div class="field">
-        <label for="caption">Подпись (необязательно)</label>
-        <input type="text" id="caption" placeholder="Например: цех, общий план">
-      </div>
-      <button class="btn btn-signal" id="upload-btn" style="width: 100%; justify-content: center;">Загрузить</button>
-      <div class="form-status" id="upload-status"></div>
-    </div>
+  <div class="tabs">
+    <button class="tab-btn active" id="tab-leads">Заявки<span class="lead-badge" id="lead-badge" style="display:none;"></span></button>
+    <button class="tab-btn" id="tab-photos">Фото</button>
   </div>
 
-  <div class="reveal in">
+  <div id="panel-leads" class="reveal in">
+    <span class="eyebrow">Обращения с сайта</span>
+    <h2 style="margin: 10px 0 6px;">Заявки</h2>
+    <p class="hint" style="margin-bottom: 10px;">Заявки приходят сюда напрямую из формы на сайте.</p>
+    <div id="lead-list"></div>
+  </div>
+
+  <div id="panel-photos" class="reveal in" style="display:none;">
+    <div style="margin-bottom: 32px;">
+      <span class="eyebrow">Новая загрузка</span>
+      <h2 style="margin: 10px 0 20px;">Добавить фото</h2>
+      <div class="contact-card">
+        <div class="field">
+          <label for="file">Файл фото</label>
+          <input type="file" id="file" accept="image/*">
+        </div>
+        <div class="field">
+          <label for="case-select">Куда добавить</label>
+          <select id="case-select"></select>
+        </div>
+        <div class="field">
+          <label for="caption">Подпись (необязательно)</label>
+          <input type="text" id="caption" placeholder="Например: цех, общий план">
+        </div>
+        <button class="btn btn-signal" id="upload-btn" style="width: 100%; justify-content: center;">Загрузить</button>
+        <div class="form-status" id="upload-status"></div>
+      </div>
+    </div>
+
     <span class="eyebrow">Уже загружено</span>
     <h2 style="margin: 10px 0 6px;">Фото на сайте</h2>
     <p class="hint" style="margin-bottom: 10px;">Удаление убирает фото с сайта сразу.</p>
