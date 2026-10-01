@@ -132,6 +132,36 @@
     els.forEach(function (el) { io.observe(el); });
   }
 
+  /* ---------- Яндекс Метрика: безопасная отправка целей ---------- */
+  // Если номер счётчика не определяется сам, впишите его сюда, например: 12345678
+  var YM_ID = 0;
+
+  function ymCounterId() {
+    if (YM_ID) return YM_ID;
+    try {
+      if (window.ym && window.ym.a) {
+        for (var i = 0; i < window.ym.a.length; i++) {
+          var args = window.ym.a[i];
+          if (args && args[1] === "init") return args[0];
+        }
+      }
+    } catch (e) {}
+    try {
+      if (window.Ya && window.Ya._metrika && window.Ya._metrika.getCounters) {
+        var list = window.Ya._metrika.getCounters();
+        if (list && list[0] && list[0].id) return list[0].id;
+      }
+    } catch (e) {}
+    return 0;
+  }
+
+  function track(goal, params) {
+    try {
+      var id = ymCounterId();
+      if (id && typeof window.ym === "function") window.ym(id, "reachGoal", goal, params || {});
+    } catch (e) {}
+  }
+
   /* ---------- Форма заявки ---------- */
   function initForm() {
     var form = document.getElementById("lead-form");
@@ -140,8 +170,102 @@
     if (form.dataset.bound === "1") return; // защита от повторной привязки
     form.dataset.bound = "1";
 
+    var submitBtn = form.querySelector('button[type="submit"]');
+    var sending = false;
+
+    function setStatus(text, cls) {
+      status.textContent = text;
+      status.className = "form-status" + (cls ? " " + cls : "");
+    }
+
+    // Один запрос к функции send-lead. Никогда не бросает исключение,
+    // всегда возвращает объект с результатом и причиной.
+    function attempt(payload, timeoutMs) {
+      var sb = CONFIG.supabase;
+      var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+      var timer = controller ? setTimeout(function () { controller.abort(); }, timeoutMs) : null;
+
+      var opts = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + sb.anonKey,
+          "apikey": sb.anonKey
+        },
+        body: JSON.stringify(payload)
+      };
+      if (controller) opts.signal = controller.signal;
+
+      return fetch(sb.url + "/functions/v1/send-lead", opts).then(
+        function (r) {
+          return r.json().catch(function () { return null; }).then(function (data) {
+            if (timer) clearTimeout(timer);
+            if (r.ok && data && data.ok) return { ok: true };
+            return {
+              ok: false,
+              reason: r.ok ? "bad_response" : "http_" + r.status,
+              status: r.status,
+              retry: r.status >= 500 || r.status === 429
+            };
+          });
+        },
+        function (err) {
+          if (timer) clearTimeout(timer);
+          var isTimeout = err && err.name === "AbortError";
+          return {
+            ok: false,
+            reason: isTimeout ? "timeout" : "network",
+            message: String((err && err.message) || err).slice(0, 120),
+            retry: true
+          };
+        }
+      );
+    }
+
+    // Если автоматическая отправка не удалась, не показываем тупиковую ошибку,
+    // а даём человеку готовый текст заявки и кнопки связи.
+    function showFallback(p) {
+      var text = "Здравствуйте! Заявка с сайта.\nИмя: " + p.name +
+        "\nКонтакт: " + p.contact +
+        (p.objectType ? "\nОбъект: " + p.objectType : "") +
+        (p.message ? "\nЗадача: " + p.message : "");
+
+      status.className = "form-status err";
+      status.textContent = "";
+
+      var msg = document.createElement("div");
+      msg.textContent = "Заявка не ушла автоматически. Нажмите кнопку ниже, текст уже подготовлен.";
+      msg.style.marginBottom = "12px";
+
+      var row = document.createElement("div");
+      row.style.display = "flex";
+      row.style.flexWrap = "wrap";
+      row.style.gap = "10px";
+
+      var tg = document.createElement("a");
+      tg.className = "btn btn-signal";
+      tg.href = "https://t.me/gabdulatukai?text=" + encodeURIComponent(text);
+      tg.target = "_blank";
+      tg.rel = "noopener";
+      tg.textContent = "Написать в Telegram";
+      tg.addEventListener("click", function () { track("form_fallback_tg"); });
+
+      var call = document.createElement("a");
+      call.className = "btn btn-ghost";
+      call.href = "tel:+79111192091";
+      call.textContent = "Позвонить";
+      call.addEventListener("click", function () { track("form_fallback_call"); });
+
+      row.appendChild(tg);
+      row.appendChild(call);
+      status.appendChild(msg);
+      status.appendChild(row);
+    }
+
     form.addEventListener("submit", function (e) {
       e.preventDefault();
+      if (sending) return;
+
       var fd = new FormData(form);
       var name = (fd.get("name") || "").toString().trim();
       var contact = (fd.get("contact") || "").toString().trim();
@@ -149,56 +273,58 @@
       var message = (fd.get("message") || "").toString().trim();
 
       if (!name || !contact) {
-        status.textContent = "Заполните имя и контакт для связи.";
-        status.className = "form-status err";
+        setStatus("Заполните имя и контакт для связи.", "err");
         return;
       }
+
+      var payload = { name: name, contact: contact, objectType: objectType, message: message };
 
       var sb = CONFIG.supabase;
       if (!sb || !sb.url || !sb.anonKey) {
-        status.textContent = "Форма пока не подключена. Свяжитесь напрямую по контактам ниже.";
-        status.className = "form-status err";
+        track("form_fail", { reason: "no_config" });
+        showFallback(payload);
         return;
       }
 
-      status.textContent = "Отправляю...";
-      status.className = "form-status";
+      sending = true;
+      if (submitBtn) submitBtn.disabled = true;
+      setStatus("Отправляю...");
+      track("form_submit");
 
-      var controller = new AbortController();
-      var timeoutId = setTimeout(function () { controller.abort(); }, 8000);
+      var started = Date.now();
 
-      fetch(sb.url + "/functions/v1/send-lead", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer " + sb.anonKey,
-          "apikey": sb.anonKey
-        },
-        body: JSON.stringify({ name: name, contact: contact, objectType: objectType, message: message }),
-        signal: controller.signal
-      })
-        .then(function (r) {
-          return r.json().catch(function () { return null; }).then(function (data) {
-            return { ok: r.ok, data: data };
-          });
-        })
-        .then(function (result) {
-          clearTimeout(timeoutId);
-          if (result.ok && result.data && result.data.ok) {
-            status.textContent = "Заявка отправлена. Отвечу в ближайшее время.";
-            status.className = "form-status ok";
-            form.reset();
-          } else {
-            // Логируем причину в консоль, чтобы её было видно в devtools при диагностике
-            console.error("send-lead: сервер вернул ошибку", result);
-            throw new Error("send-lead error");
+      attempt(payload, 10000)
+        .then(function (res) {
+          res.attempts = 1;
+          if (!res.ok && res.retry) {
+            // Одна повторная попытка через 1,5 секунды
+            return new Promise(function (resolve) { setTimeout(resolve, 1500); })
+              .then(function () { return attempt(payload, 10000); })
+              .then(function (res2) { res2.attempts = 2; return res2; });
           }
+          return res;
         })
-        .catch(function (err) {
-          clearTimeout(timeoutId);
-          console.error("send-lead: запрос не прошёл", err);
-          status.textContent = "Не получилось отправить (проблема со связью). Напишите напрямую в Telegram по контактам ниже.";
-          status.className = "form-status err";
+        .then(function (res) {
+          sending = false;
+          if (submitBtn) submitBtn.disabled = false;
+          var ms = Date.now() - started;
+
+          if (res.ok) {
+            setStatus("Заявка отправлена. Отвечу в ближайшее время.", "ok");
+            form.reset();
+            track("form_ok", { ms: ms, attempts: res.attempts });
+          } else {
+            console.error("send-lead: не удалось отправить", res);
+            track("form_fail", {
+              reason: res.reason,
+              status: res.status || 0,
+              message: res.message || "",
+              ms: ms,
+              attempts: res.attempts,
+              ua: (navigator.userAgent || "").slice(0, 150)
+            });
+            showFallback(payload);
+          }
         });
     });
   }
